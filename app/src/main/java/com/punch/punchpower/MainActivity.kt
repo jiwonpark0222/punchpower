@@ -9,6 +9,7 @@ import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.animation.AnimationUtils
 import com.punch.punchpower.databinding.ActivityMainBinding
 import java.lang.Exception
 
@@ -58,7 +59,7 @@ class MainActivity : AppCompatActivity() {
                     // 최초 측정후 3초가 지났으면 측정을 끝낸다.
                     if (System.currentTimeMillis() - startTime > 3000){
                         isStart = false
-
+                        punchPowerTestComplete(maxPower)
                     }
                 }
 
@@ -74,30 +75,40 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mainBinding = ActivityMainBinding.inflate(layoutInflater)
+        Log.d("MAINACTIVITY","여기서 바로만들어짐")
         val view = mainBinding.root
         val stateLabel = mainBinding.stateLabel
+        val imageView = mainBinding.imageView
 
         setContentView(view)
+//        imageView.startAnimation(AnimationUtils.loadAnimation(this@MainActivity, R.anim.tran))
 
     }
 
-    fun initGame(){
-        mainBinding = ActivityMainBinding.inflate(layoutInflater)
+    override fun onStart() {
+        super.onStart()
+        initGame()
+    }
+
+    private fun initGame(){
         val stateLabel = mainBinding.stateLabel
         maxPower = 0.0
         isStart = false
         startTime = 0L
         stateLabel.text = "핸드폰을 손에 쥐고 주먹을 내지르세요"
-
+        val imageView = mainBinding.imageView
+        imageView.startAnimation(AnimationUtils.loadAnimation(this@MainActivity, R.anim.tran))
         //센서의 변화 값을 처리할 리스너를 등록한다.
         // TYPE_LINEAR_ACCELERATION 은 중력값을 제외하고 x, y, z 축에 측정된 가속도만 계산되어 나온다.
         sensorManager.registerListener(eventListener, sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION), SensorManager.SENSOR_DELAY_NORMAL)
+
 
     }
 
     fun punchPowerTestComplete(power: Double){
         Log.d(TAG, "측정완료: power: ${String.format("%.5f", power)}")
         sensorManager.unregisterListener(eventListener)
+
         val intent = Intent(this@MainActivity, ResultActivity::class.java)
         intent.putExtra("power", power)
         startActivity(intent)
